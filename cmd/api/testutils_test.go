@@ -17,6 +17,14 @@ func newTestApplication(t *testing.T) *application {
 	return &application{
 		logger: jsonlog.New(io.Discard, jsonlog.LevelFatal),
 		models: data.NewMockModels(),
+		config: config{limiter: struct {
+			rps     float64
+			burst   int
+			enabled bool
+		}{
+			rps:     2,
+			burst:   4,
+			enabled: true}},
 	}
 }
 
@@ -103,6 +111,31 @@ func (ts *testServer) patch(t *testing.T, urlPath string, data []byte) (int, htt
 	reader := bytes.NewReader(data)
 
 	req, err := http.NewRequest(http.MethodPatch, ts.URL+urlPath, reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rs, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytes.TrimSpace(body)
+
+	return rs.StatusCode, rs.Header, string(body)
+}
+
+func (ts *testServer) put(t *testing.T, urlPath string, data []byte) (int, http.Header, string) {
+	reader := bytes.NewReader(data)
+
+	req, err := http.NewRequest(http.MethodPut, ts.URL+urlPath, reader)
 	if err != nil {
 		t.Fatal(err)
 	}

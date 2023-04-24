@@ -254,38 +254,62 @@ func TestUpdateMovieHandler(t *testing.T) {
 		Year     int32    `json:"year"`
 		Runtime  string   `json:"runtime"`
 		Genres   []string `json:"genres"`
-	}{{
-		name:     "Updated title",
-		url:      "/v1/movies/1",
-		wantCode: http.StatusOK,
-		Title:    "Updated Title",
-	}, {
-		name:     "Updated genres",
-		url:      "/v1/movies/1",
-		wantCode: http.StatusOK,
-		Genres:   []string{"comedy, action"},
-	}, {
-		name:     "Updated runtime",
-		url:      "/v1/movies/1",
-		wantCode: http.StatusOK,
-		Runtime:  "140 mins",
-	}, {
-		name:     "Invalid runtime format",
-		url:      "/v1/movies/1",
-		wantCode: http.StatusBadRequest,
-		Runtime:  "140",
-	}, {
-		name:     "Movie not found",
-		url:      "/v1/movies/2",
-		wantCode: http.StatusNotFound,
-		Runtime:  "140",
-	}, {
-		name:     "Failed Validation",
-		url:      "/v1/movies/2",
-		wantCode: http.StatusNotFound,
-		Runtime:  "18999 mins",
-		Title:    "",
-	}}
+	}{
+		{
+			name:     "Updated title",
+			url:      "/v1/movies/1",
+			wantCode: http.StatusOK,
+			Title:    "Updated Title",
+		},
+		{
+			name:     "Updated genres",
+			url:      "/v1/movies/1",
+			wantCode: http.StatusOK,
+			Genres:   []string{"comedy, action"},
+		},
+		{
+			name:     "Updated runtime",
+			url:      "/v1/movies/1",
+			wantCode: http.StatusOK,
+			Runtime:  "140 mins",
+		},
+		{
+			name:     "Invalid runtime format",
+			url:      "/v1/movies/1",
+			wantCode: http.StatusBadRequest,
+			Runtime:  "140",
+		},
+		{
+			name:     "Invalid year format",
+			url:      "/v1/movies/1",
+			wantCode: http.StatusUnprocessableEntity,
+			Year:     234245,
+		},
+		{
+			name:     "Movie not found",
+			url:      "/v1/movies/2",
+			wantCode: http.StatusNotFound,
+			Runtime:  "140",
+		},
+		{
+			name:     "Movie not found",
+			url:      "/v1/movies/fff",
+			wantCode: http.StatusNotFound,
+			Runtime:  "140",
+		},
+		{
+			name:     "Failed Validation",
+			url:      "/v1/movies/2",
+			wantCode: http.StatusNotFound,
+			Runtime:  "18999 mins",
+			Title:    "",
+		},
+		{
+			name:     "Method Not Allowed test",
+			url:      "/v1/movies/2",
+			wantCode: http.StatusMethodNotAllowed,
+			Runtime:  "183 min",
+		}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -304,6 +328,13 @@ func TestUpdateMovieHandler(t *testing.T) {
 			b, err := json.Marshal(&inputData)
 			if err != nil {
 				t.Fatal("wrong input data")
+			}
+
+			if tt.name == "Method Not Allowed test" {
+				code, _, _ := ts.put(t, tt.url, b)
+
+				assert.Equal(t, code, tt.wantCode)
+				return
 			}
 
 			code, _, _ := ts.patch(t, tt.url, b)
