@@ -3,9 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net/http"
+
 	"greenlight.bcc/internal/data"
 	"greenlight.bcc/internal/validator"
-	"net/http"
 )
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -167,6 +168,7 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request) {
+
 	var input struct {
 		Title  string
 		Genres []string

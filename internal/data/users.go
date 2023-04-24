@@ -262,13 +262,29 @@ func (m MockUserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, er
 
 	switch tokenPlaintext {
 	case "BusinessManBusinessPlan123":
-		if tokenScope == ScopeActivation {
-			return &User{
-				Name:     "Ryan Gosling",
-				Email:    "test@test.com",
-				Password: password{plaintext: pointer.ToString("1234567a"), hash: hash1},
-			}, nil
-		}
+		return &User{
+			ID:        1,
+			Name:      "Ryan Gosling",
+			Email:     "test@test.com",
+			Password:  password{plaintext: pointer.ToString("1234567a"), hash: hash1},
+			Activated: true,
+		}, nil
+	case "BusinessManBusinessPlanNOO":
+		return &User{
+			ID:        2,
+			Name:      "NOT Ryan Gosling",
+			Email:     "test@test.com",
+			Password:  password{plaintext: pointer.ToString("1234567a"), hash: hash1},
+			Activated: false,
+		}, nil
+	case "BusinessManBusinessPlan000":
+		return &User{
+			ID:        3,
+			Name:      "NOT Ryan Gosling Again",
+			Email:     "test@test.com",
+			Password:  password{plaintext: pointer.ToString("1234567a"), hash: hash1},
+			Activated: true,
+		}, nil
 	}
 
 	return nil, ErrRecordNotFound

@@ -40,11 +40,14 @@ func (app *application) routesTest() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 
-	router.HandlerFunc(http.MethodGet, "/v1/movies", app.listMoviesHandler)
+	router.Handler(http.MethodGet, "/v1/movies", app.rateLimit(http.HandlerFunc(app.listMoviesHandler)))
 	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
 	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
+	router.Handler(http.MethodGet, "/testauth/v1/movies", app.authenticate(app.requireAuthenticatedUser(app.listMoviesHandler)))
+	router.Handler(http.MethodGet, "/testactivated/v1/movies", app.authenticate(app.requireActivatedUser(app.listMoviesHandler)))
+	router.Handler(http.MethodGet, "/testpermissions/v1/movies", app.authenticate(app.requirePermission("movies:read", app.listMoviesHandler)))
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
-	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
+	router.Handler(http.MethodPatch, "/v1/movies/:id", app.authenticate(http.HandlerFunc(app.updateMovieHandler)))
 
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
